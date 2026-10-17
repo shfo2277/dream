@@ -1,7 +1,10 @@
 # dream – 시각장애인 길안내 보행보조 시스템
 
-**드림학기(2024)** 에 진행한 프로젝트로, 시각장애인이 보도를 안전하게 걸을 수 있도록
-카메라와 2D LiDAR로 주변 보행 환경을 인식하고, 그 결과를 WebSocket으로 전달하는 **ROS 2 기반 보행보조 시스템**입니다.
+**드림학기제 프로젝트** (2024.09.01 ~ 2024.12.20)
+
+시각장애인의 교내 안전한 이동을 돕는 길안내 시스템입니다. 사용자가 스마트폰에 **음성으로 목적지를 입력**하면 경로를 안내하고,
+이동 중에는 Jetson에 연결된 카메라와 2D LiDAR로 주변을 인식해 **인도 이탈과 위험 거리 안의 장애물을 스마트폰 음성으로 알려줍니다.**
+교내 정문 → 학생회관 경로를 시나리오로 시연했습니다.
 
 저장소는 두 부분으로 나뉩니다.
 
@@ -115,10 +118,16 @@ Jetson에 올리기 전에 PC에서 모델을 학습·테스트하고, 센서 �
 
 ## 개발 환경
 
-- 실행: NVIDIA Jetson, Ubuntu, ROS 2
-- 학습 · 캘리브레이션: Ubuntu PC, Python 3
-- TensorFlow 2.17 / Keras 3.5 (U-Net), PyTorch (YOLOv5), OpenCV 4.10, `cv_bridge`
-- 센서: USB 카메라, RPLiDAR
+| 구분 | 내용 |
+| --- | --- |
+| 보드 | NVIDIA Jetson Orin Nano |
+| OS / 미들웨어 | Ubuntu 22.04 LTS, ROS 2 Humble |
+| GPU 환경 | JetPack 6.1, CUDA 12.6, cuDNN 9.3.0 |
+| 딥러닝 | PyTorch 2.5.0 / TorchVision 0.19 (Jetson용) – YOLOv5s, TensorFlow – U-Net |
+| 센서 | Logitech C270 웹캠, RPLiDAR (2D) |
+| 연동 | rosbridge WebSocket → 스마트폰 앱 (음성 입력 · 음성 안내) |
+| 학습 PC | Ubuntu, TensorFlow 2.17 / Keras 3.5, OpenCV 4.10 (`unet/requirementsadd.txt`) |
+| 데이터 | 교내 보도 이미지를 직접 수집해 CVAT으로 마스킹, 회전·확대/축소·밝기 조절 증강 |
 
 ## Credits
 
