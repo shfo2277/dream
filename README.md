@@ -14,6 +14,16 @@
 - **앞에 무엇이 있는가** – YOLOv5로 보행 경로 위 장애물(볼라드) 실시간 탐지
 - **얼마나, 어느 쪽에 있는가** – LiDAR 포인트를 카메라 영상에 투영해 탐지된 장애물의 **거리(m)와 방향(왼쪽/정면/오른쪽)** 계산
 
+## 결과
+
+<p align="center">
+  <img src="docs/segmentation_sidewalk.gif" width="45%">
+  <img src="docs/segmentation_campus.gif" width="45%">
+</p>
+
+U-Net 노면 세그멘테이션 결과입니다. 빨간색이 보도블록으로 인식된 영역이고, 차도·점자블록·화단은 다른 영역으로 분리됩니다.
+오른쪽은 화면 하단(발 앞쪽)만 추론하는 ROI 버전으로, 벤치와 나무 같은 장애물이 보도 영역에서 빠지는 것을 볼 수 있습니다.
+
 ## 시스템 구성
 
 ```
@@ -43,18 +53,29 @@
 
 ## Jetson 실행 코드 (`dream_final/`)
 
+실제로 Jetson에서 실행한 최종 노드 7개입니다. 각 파일 맨 위에 역할과 구독/발행 토픽을 적어 두었습니다.
+
 | 노드 | 설명 |
 | --- | --- |
-| `camera_node.py` | 카메라(0번)를 열어 10 Hz로 `/camera/image_raw` 발행 (`image_publisher.py`는 간단 버전) |
-| `yolo_node.py` | YOLOv5 커스텀 모델(`best.pt`, 볼라드)로 탐지. 추론을 **별도 스레드 + 프레임 큐**로 분리해 콜백이 막히지 않게 했고, confidence ≥ 0.8만 JSON으로 발행 |
-| `unet_node.py` | U-Net(`unet129.h5`, 입력 128×128)으로 22개 노면 클래스 예측. 결과를 **10×10 격자로 축소**해 가볍게 발행하고, 원본 크기 마스크와 오버레이 영상도 출력 |
-| `unet_video_node.py` | 카메라 대신 동영상(`5.mp4`)으로 같은 처리를 하는 테스트용 노드 |
+| `camera_node.py` | 카메라(0번)를 열어 10 Hz로 `/camera/image_raw` 발행 |
+| `yolo_node.py` | YOLOv5 커스텀 모델(`best.pt`, 볼라드)로 탐지. 추론을 **별도 스레드 + 프레임 큐**로 분리해 속도를 개선했고, confidence ≥ 0.8만 JSON으로 발행 |
+| `unet_node.py` | U-Net(`unet129.h5`, 입력 128×128)으로 22개 노면 클래스 예측. 결과를 **10×10 격자로 축소**해 가볍게 발행 |
 | `sidewalk_node.py` | 10×10 마스크의 **하단 4행(발 앞쪽)** 을 좌/우 절반으로 나눠 인도 픽셀 비율(≥ 40%)을 계산하고, 인도 위 여부(`on`/`off`)와 이탈 방향(`left`/`right`) 판단 |
-| `fusion_node.py` | LiDAR 스캔 → 3D 점 → 외부 파라미터로 카메라 좌표 변환 → 내부 파라미터로 영상 투영. YOLO 바운딩박스 안에 들어온 점(먼 쪽 35% 제외)의 평균으로 **거리·각도** 계산, 각도로 방향 결정 (±15° 정면, 15~40° 왼쪽/오른쪽) |
-| `websocket1.py` | `/fusion_results` → `/websocket1` 재발행 |
-| `websocket2.py` | `/sidewalk/boundary_status` → `/websocket2` 재발행 |
-| `lidar_distance.py`, `lidar_distance2.py` | LiDAR만으로 가장 가까운 장애물 거리(와 각도)를 출력하는 테스트 노드 |
-| `* (copy).py` | 개발 중 이전 버전 |
+| `fusion_node.py` | LiDAR 점을 영상에 투영해 YOLO 바운딩박스 안에 들어온 점(먼 쪽 35% 제외)으로 장애물의 **거리·각도** 계산, 각도로 방향 결정 (±15° 정면, 15~40° 왼쪽/오른쪽) |
+| `websocket1.py` | `/fusion_results` → `/websocket1` 재발행 (장애물 정보) |
+| `websocket2.py` | `/sidewalk/boundary_status` → `/websocket2` 재발행 (인도 이탈 정보) |
+
+`dream_final/dev/` 에는 개발 중 이전 버전과 테스트용 코드를 모아 두었습니다.
+
+| 파일 | 설명 |
+| --- | --- |
+| `yolo_node_v1_no_thread.py` | 스레딩 적용 전 YOLO 노드 (약 10 fps) |
+| `unet_node_v1_fullmask.py` | 256×256 입력, 원본 크기 마스크 전체를 JSON으로 보내던 버전 |
+| `fusion_node_v1.py`, `fusion_node_v2.py` | 이전 퓨전 노드 (카메라 좌표에서 거리 계산, 라디안 기준 방향 판단) |
+| `websocket_publish_v1.py` | rosbridge JSON 형식으로 감싸 보내던 버전 (파싱 실패로 websocket1/2로 교체) |
+| `image_publisher.py` | 간단한 카메라 발행 노드 |
+| `unet_video_node.py`, `5.mp4` | 카메라 대신 동영상으로 세그멘테이션 테스트 |
+| `lidar_distance.py`, `lidar_distance2.py` | LiDAR만으로 가장 가까운 장애물 거리·각도 출력 테스트 |
 
 ### 캘리브레이션 값
 

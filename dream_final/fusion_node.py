@@ -1,3 +1,12 @@
+"""
+fusion_node – LiDAR + YOLO 센서 퓨전 (장애물 거리·방향)
+
+LiDAR 스캔 점을 외부 파라미터로 카메라 좌표로 바꾸고 내부 파라미터로 영상에 투영한다.
+YOLO 바운딩박스 안에 들어온 점(먼 쪽 35% 제외)을 다시 LiDAR 좌표로 돌려 평균 거리와 각도를 구하고,
+각도로 방향을 정한다. (±15° center, 15~40° left/right, 그 밖은 out of range)
+  sub: /yolov5/detections, /scan (sensor_msgs/LaserScan), /camera/image_raw
+  pub: /fusion_results (std_msgs/String) "Object: bollard, Distance: 1.23m, Direction: center"
+"""
 import rclpy
 from rclpy.node import Node
 import numpy as np

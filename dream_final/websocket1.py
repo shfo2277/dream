@@ -1,3 +1,10 @@
+"""
+websocket1 – 장애물 정보 전달
+
+퓨전 결과를 WebSocket(rosbridge) 연동용 토픽으로 그대로 재발행한다.
+  sub: /fusion_results
+  pub: /websocket1
+"""
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String

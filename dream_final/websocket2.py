@@ -1,3 +1,10 @@
+"""
+websocket2 – 인도 이탈 정보 전달
+
+인도 이탈 판단 결과를 WebSocket(rosbridge) 연동용 토픽으로 그대로 재발행한다.
+  sub: /sidewalk/boundary_status
+  pub: /websocket2
+"""
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String

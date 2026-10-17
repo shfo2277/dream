@@ -1,4 +1,9 @@
+"""
+camera_node – 카메라 영상 발행
 
+USB 카메라(0번)에서 프레임을 읽어 10 Hz로 발행한다.
+  pub: /camera/image_raw (sensor_msgs/Image)
+"""
 # 실행코드 ros2 run camera_ros camera
 import rclpy
 from rclpy.node import Node

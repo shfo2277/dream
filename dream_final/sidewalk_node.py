@@ -1,3 +1,11 @@
+"""
+sidewalk_node – 인도 이탈 판단
+
+10x10 마스크의 하단 4행(발 앞쪽)을 왼쪽/오른쪽 절반으로 나눠 인도 픽셀 비율(40% 기준)을 계산하고,
+인도 위에 있는지(on/off)와 어느 쪽으로 벗어나는지(left/right)를 판단한다.
+  sub: /unet/predictions (std_msgs/String, JSON)
+  pub: /sidewalk/boundary_status (std_msgs/String, JSON) {"status": "on", "direction": "left"}
+"""
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String

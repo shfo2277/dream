@@ -1,3 +1,12 @@
+"""
+unet_node – 노면 세그멘테이션
+
+U-Net(unet129.h5, 입력 128x128)으로 22개 노면 클래스(보도/차도/점자블록/위험구역 등)를 예측한다.
+결과 마스크를 10x10 격자로 줄여 RGB 값 JSON으로 가볍게 발행한다.
+  sub: /camera/image_raw (sensor_msgs/Image)
+  pub: /unet/predictions (std_msgs/String, JSON) {"mask": 10x10x[r, g, b]}
+       /unet/segmented_image (sensor_msgs/Image) 원본 크기 컬러 마스크
+"""
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image

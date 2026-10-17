@@ -1,4 +1,13 @@
-#쓰레딩 추가
+"""
+yolo_node – 장애물(볼라드) 탐지
+
+YOLOv5 커스텀 모델(best.pt)로 카메라 영상에서 장애물을 탐지한다.
+추론은 별도 스레드 + 프레임 큐로 돌려 콜백이 막히지 않게 했다. (스레딩 전 10 fps → 개선)
+confidence 0.8 이상만 발행한다.
+  sub: /camera/image_raw (sensor_msgs/Image)
+  pub: /yolov5/detections (std_msgs/String, JSON)
+       {"detections": [{"bbox": [x1, y1, x2, y2], "confidence": 0.93, "class_name": "bollard"}]}
+"""
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
